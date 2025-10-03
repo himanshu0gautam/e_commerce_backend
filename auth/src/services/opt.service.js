@@ -27,14 +27,12 @@ async function sendSMS(Phone, message){
       console.error(`Failed to send SMS to ${Phone}:`, error);
       throw new Error('Failed to send SMS');
     }  
-  
-  
 }
 
 async function sendSMS2(Phone, message){
-
+  
     const url = 'https://bulksms.smsroot.com/app/smsapi/index.php';
-
+  
     const params = {
       key: '467DD867AC81DD',
       campaign: '0',
@@ -45,7 +43,6 @@ async function sendSMS2(Phone, message){
       msg: message,
       template_id: '1707174774488064756'
     };
-
     try {
       const response = await axios.get(url, { params });
       console.log(`SMS sent to ${Phone}:`, response.data);
@@ -53,6 +50,7 @@ async function sendSMS2(Phone, message){
       console.error(`Failed to send SMS to ${Phone}:`, error);
       throw new Error('Failed to send SMS');
     }
-}
+  }
+
 
 module.exports = {sendSMS,sendSMS2}
