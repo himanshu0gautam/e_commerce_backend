@@ -7,7 +7,7 @@ connectDb()
 app.get('/', (res,req)=>{
     console.log("hirted")
 })
-app.listen(port,'0.0.0.0',() =>{
+app.listen(port,() =>{
     console.log(`server is running on ${port}`);
 })
 

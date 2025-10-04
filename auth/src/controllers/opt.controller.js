@@ -3,6 +3,8 @@ const connectDb = require("../db/db");
 const redis = require("../db/radis");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require('uuid');
+
+
 async function sendOtp(req, res) {
   const db = await connectDb();
   const { phone } = req.body;
@@ -121,7 +123,6 @@ async function verifyForgotOtp(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
 
 module.exports = {
   sendOtp,
