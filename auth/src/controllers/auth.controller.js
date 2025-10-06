@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const redis = require('../db/radis')
 const {sendSMS2} = require('../services/opt.service')
+
 async function registerController(req, res) {
   const db = await connectDb();
   const { username, email, password, phone } = req.body;
@@ -27,9 +28,7 @@ async function registerController(req, res) {
       return res.status(500).json({  message: insertedUser.message});
     }
 
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+   const token = jwt.sign({ id: insertedUser.id, phone: insertedUser.phone }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.cookie("token", token, { httpOnly: true, secure: true });
 
@@ -91,7 +90,6 @@ async function logout(req,res) {
     }
 }
 
-
 async function forgotPassword(req, res) {
   try {
     const { phone } = req.body;
@@ -113,7 +111,6 @@ async function forgotPassword(req, res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
-
 
 async function resetPassword(req, res) {
   try {
@@ -138,7 +135,32 @@ async function resetPassword(req, res) {
   }
 }
 
+async function getUsers(req,res) {
+   try {
+    const db = await connectDb();
+    const [userRow] = await db.query("SELECT id, username, email, phone FROM user WHERE id = ?", [req.user.id]);
+    if (userRow.length === 0) return res.status(404).json({ message: "User not found" });
+    res.status(200).json({ user: userRow[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function getAllUsers(req,res) {
+  try {
+    const db = await connectDb();
+    const [rows] = await db.query("SELECT * FROM user");
+
+    // remove password before sending
+    const users = rows.map(({ password, ...rest }) => rest);
+
+    res.status(200).json({ message: "All users fetched", users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 
-
-module.exports = { registerController, loginController,logout,forgotPassword,resetPassword };
+module.exports = { registerController, loginController,logout,forgotPassword,resetPassword ,getUsers,getAllUsers}

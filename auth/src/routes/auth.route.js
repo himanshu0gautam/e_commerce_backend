@@ -1,6 +1,6 @@
 const express = require('express')
-const multer = require("multer");
-const upload = multer(); 
+const authmiddleware = require('../middlewares/auth.middleware')
+
 /*IMPORT VALIDATIONS */
 const authValidation= require('../middlewares/authValidation.middleware')
 
@@ -28,10 +28,16 @@ route.get('/logout',authControlers.logout)
 /* /api/auth/forgetpassword */
 route.post('/forget-password',authControlers.forgotPassword)
 
-/* /api/auth//verify-Forgot-Otp */
+/* /api/auth/verify-Forgot-Otp */
 route.post('/verify-Forgot-Otp',optControlers.verifyForgotOtp)
 
-/* /api/auth///reset-password */
+/* /api/auth/reset-password */
 route.post('/reset-password',authControlers.resetPassword)
+
+/* /api/auth/me */
+route.get('/me',authmiddleware,authControlers.getUsers)
+
+/* /api/auth/allusers */
+route.get("/allusers",authControlers.getAllUsers)
 
 module.exports = route
