@@ -28,4 +28,29 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = authMiddleware;
+const sellerAuthMiddleware = async (req, res, next) => {
+  try {
+    console.log("Cookies:", req.cookies);
+    console.log("Auth Header:", req.headers.authorization);
+
+    const token = req.cookies?.sellertoken || (req.headers?.authorization?.split(' ')[1]);
+
+    console.log("Token:", token);
+
+    if (!token) return res.status(401).json({ message: 'Unauthorized: No token' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const db = await connectDb();
+
+    const [rows] = await db.query('SELECT * FROM seller WHERE id = ?', [decoded.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Seller not found' });
+
+    req.seller = rows[0];
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  }
+};
+
+module.exports = {authMiddleware,sellerAuthMiddleware};

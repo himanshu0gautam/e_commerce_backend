@@ -1,5 +1,5 @@
 const express = require('express')
-const authmiddleware = require('../middlewares/auth.middleware')
+const authenticatemiddleware = require('../middlewares/auth.middleware')
 
 /*IMPORT VALIDATIONS */
 const authValidation= require('../middlewares/authValidation.middleware')
@@ -35,7 +35,7 @@ route.post('/verify-Forgot-Otp',optControlers.verifyForgotOtp)
 route.post('/reset-password',authControlers.resetPassword)
 
 /* /api/auth/me */
-route.get('/me',authmiddleware,authControlers.getUsers)
+route.get('/me',authenticatemiddleware.authMiddleware,authControlers.getUsers)
 
 /* /api/auth/allusers */
 route.get("/allusers",authControlers.getAllUsers)

@@ -4,8 +4,7 @@ const redis = require("../db/radis");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require('uuid');
 
-
-async function sendOtp(req, res) {
+async function sellerSendOtp(req, res) {
   const db = await connectDb();
   const { phone } = req.body;
 
@@ -13,7 +12,7 @@ async function sendOtp(req, res) {
     return res.status(400).json({ message: "Phone number required" });
   }
 
-  const [userRow] = await db.query("SELECT * FROM user WHERE phone = ?", [
+  const [userRow] = await db.query("SELECT * FROM seller WHERE phone = ?", [
     phone,
   ]);
   // console.log(`OTP for ${phone}: ${otp}`);
@@ -22,7 +21,7 @@ async function sendOtp(req, res) {
     // User not registered → redirect to register
     return res
       .status(404)
-      .json({ message: "User not found", redirectToRegister: true });
+      .json({ message: "Seller not found", redirectToRegister: true });
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -56,7 +55,7 @@ async function sendOtp(req, res) {
   // TODO: Save OTP and expiry in DB if you want to verify later
 }
 
-async function verifyOtp(req, res) {
+async function sellerVerifyOtp(req, res) {
   try {
     const { phone, otp } = req.body;
 
@@ -75,23 +74,23 @@ async function verifyOtp(req, res) {
 
     const db = await connectDb();
     const [userRow] = await db.query(
-      "SELECT id, username, email, phone FROM user WHERE phone = ?",
+      "SELECT * FROM seller WHERE phone = ?",
       [phone]
     );
 
-    const user = userRow[0];
+    const seller = userRow[0];
 
     const token = jwt.sign(
-      { id: user.id, phone: user.phone },
+      { id: seller.id, phone: seller.phone },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.cookie("sellertoken", token, { httpOnly: true, secure: true });
+    res.cookie("token", token, { httpOnly: true, secure: true });
 
     await redis.del(`otp:${phone}`);
 
-    res.status(200).json({ message: "Login successful", user });
+    res.status(200).json({ message: "Login successful", seller });
 
   } catch (error) {
     console.log("error in veruify otp", error);
@@ -101,7 +100,7 @@ async function verifyOtp(req, res) {
   }
 }
 
-async function verifyForgotOtp(req, res) {
+async function sellerVerifyForgotOtp(req, res) {
   const { phone, otp } = req.body;
   console.log(phone,otp);
   
@@ -125,7 +124,7 @@ async function verifyForgotOtp(req, res) {
 }
 
 module.exports = {
-  sendOtp,
-  verifyOtp,
-  verifyForgotOtp
-};
+    sellerSendOtp,
+    sellerVerifyOtp,
+    sellerVerifyForgotOtp
+}
