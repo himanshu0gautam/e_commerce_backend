@@ -5,9 +5,20 @@ async function sellerProduct(req, res) {
 
     try {
 
-        const { product_name, category, subcategory_id, brand, location_city,
-            location_state, location_country, gst_verified, price_value,
-            price_unit, product_date } = req.body;
+        const {
+            seller_id,
+            product_name,
+            category,
+            subcategory_id,
+            brand,
+            location_city,
+            location_state,
+            location_country,
+            gst_verified,
+            price_value,
+            price_unit,
+            product_date } = req.body;
+
         // not use     sku, rating_avg, rating_count, price_currency, request_callback, add_to_wishlist,
 
         // handle single or multiple files
@@ -37,17 +48,22 @@ async function sellerProduct(req, res) {
             useUniqueFileName: true
         });
 
-        const sellerProduct = await pool.query(
+        const [insertResult] = await pool.query(
             `INSERT INTO product 
-            (product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, result.url, result.product_url]
+            (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, result.url]
+        );
+
+        const [newProductRows] = await pool.query(
+            `SELECT * FROM product WHERE product_id = ?`,
+            [insertResult.insertId]
         );
 
         res.json({
             message: "product created successfully",
-            sellerProduct,
+            sellerProduct:  newProductRows[0],
             url: result.url,
-            fileId: result.product_url,
+            // fileId: result.product_url,
         });
 
     } catch (error) {
@@ -56,5 +72,11 @@ async function sellerProduct(req, res) {
     }
 
 }
+
+
+async function getsellerProduct(req, res) {
+    
+}
+
 
 export { sellerProduct }
