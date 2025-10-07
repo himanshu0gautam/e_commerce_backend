@@ -1,12 +1,12 @@
 const connectDb = require("../db/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require('bcryptjs');
-const { sendSMS,sendSMS2 } = require("../services/opt.service");
+const { sendSMS, sendSMS2 } = require("../services/opt.service");
 const redis = require("../db/radis");
 
-async function sellerRegistration(req,res) {
-    console.log("hello seller");
-    const db =await connectDb();
+async function sellerRegistration(req, res) {
+  console.log("hello seller");
+  const db = await connectDb();
   const {
     phone,
     email,
@@ -36,7 +36,7 @@ async function sellerRegistration(req,res) {
   } = req.body;
 
   try {
- 
+
     const [exists] = await db.query(
       "SELECT id FROM seller WHERE email = ? OR phone = ?",
       [email, phone]
@@ -48,7 +48,7 @@ async function sellerRegistration(req,res) {
       });
     }
 
-    const hashedPassword =await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
       "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -81,21 +81,21 @@ async function sellerRegistration(req,res) {
       ]
     );
 
-     const insertedSeller = result[0] ? result[0][0] : null;
+    const insertedSeller = result[0] ? result[0][0] : null;
 
-     const token = jwt.sign({
-        id:insertedSeller.id,
-        email:insertedSeller.email,
-        fullname:insertedSeller.fullname,
-        phone:insertedSeller.phone
-    },process.env.JWT_SECRET)
+    const token = jwt.sign({
+      id: insertedSeller.id,
+      email: insertedSeller.email,
+      fullname: insertedSeller.fullname,
+      phone: insertedSeller.phone
+    }, process.env.JWT_SECRET)
 
-    res.cookie('selertoken',token,{ httpOnly: true, secure: true })
+    res.cookie('selertoken', token, { httpOnly: true, secure: true })
 
     res.status(201).json({
-      message: "Seller registered successfully",
+      message: "Seller registered, pending admin approval",
       sellerId: result.insertId,
-      seller:insertedSeller
+      seller: insertedSeller
     });
   } catch (error) {
     console.error("Error registering seller:", error);
@@ -103,23 +103,27 @@ async function sellerRegistration(req,res) {
   }
 }
 
-async function sellerLogin(req,res) {
-    const {phone,password} = req.body
+async function sellerLogin(req, res) {
+  const { phone, password } = req.body
 
-    if(!phone){
-        res.status(400).json({message:"PHone number is required"})
-    }
+  if (!phone) {
+    res.status(400).json({ message: "PHone number is required" })
+  }
 
-    try {
-        const db = await connectDb()
+  try {
+    const db = await connectDb()
 
-        const [sellerRows] = await db.query(
+    const [sellerRows] = await db.query(
       "SELECT * FROM seller WHERE phone = ?",
       [phone]
     );
 
     if (sellerRows.length === 0) {
       return res.status(404).json({ message: "Seller not found" });
+    }
+
+    if (seller[0].status !== "approved") {
+      return res.status(403).json({ message: "Seller not approved by admin yet" });
     }
 
     const seller = sellerRows[0];
@@ -131,23 +135,24 @@ async function sellerLogin(req,res) {
       }
     }
 
-     const token = jwt.sign({
-        id:seller.id,
-        email:seller.email,
-        fullname:seller.fullname,
-        phone:seller.phone
-    },process.env.JWT_SECRET)
+    const token = jwt.sign({
+      id: seller.id,
+      email: seller.email,
+      fullname: seller.fullname,
+      phone: seller.phone
+    }, process.env.JWT_SECRET)
 
-    res.cookie('sellertoken',token,{ httpOnly: true, secure: true })
+    res.cookie('sellertoken', token, { httpOnly: true, secure: true })
 
     res.status(201).json({
       message: "Seller login successfully",
-      seller:seller
+      seller: seller
     });
 
-    } catch (error) {
-        
-    }
+  } catch (error) {
+    console.error("Error logging in seller:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 
 }
 
@@ -164,7 +169,7 @@ async function sellerForgotPassword(req, res) {
     const ttl = 300; // 5 mins
 
     await redis.set(`forgot_pass_otp:${phone}`, otp, "EX", ttl);
-    await sendSMS2(phone,   `${otp} is your password reset OTP. Do not share it with anyone Regards MOJIJA`);
+    await sendSMS2(phone, `${otp} is your password reset OTP. Do not share it with anyone Regards MOJIJA`);
 
     res.status(200).json({ message: "OTP sent successfully" });
   } catch (error) {
@@ -181,7 +186,7 @@ async function sellerResetPassword(req, res) {
 
     const storedToken = await redis.get(`forgot_pass_token:${phone}`);
     if (!storedToken) return res.status(400).json({ message: "Token expired or invalid" });
-    
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     const db = await connectDb();
@@ -196,11 +201,11 @@ async function sellerResetPassword(req, res) {
   }
 }
 
-async function getsellerData(req,res) {
+async function getsellerData(req, res) {
   try {
     const db = await connectDb()
 
-    const [seller] = await db.query('SELECT id FROM seller WHERE id = ?',[req.seller.id])
+    const [seller] = await db.query('SELECT id FROM seller WHERE id = ?', [req.seller.id])
     if (seller.length === 0) return res.status(404).json({ message: "seller not found" });
     res.status(200).json({ seller: seller[0] });
   } catch (error) {
