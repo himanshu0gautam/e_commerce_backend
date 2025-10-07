@@ -74,7 +74,7 @@ async function sellerVerifyOtp(req, res) {
 
     const db = await connectDb();
     const [userRow] = await db.query(
-      "SELECT * FROM seller WHERE phone = ?",
+      "SELECT phone,email,fullname FROM seller WHERE phone = ?",
       [phone]
     );
 
@@ -86,7 +86,12 @@ async function sellerVerifyOtp(req, res) {
       { expiresIn: "1h" }
     );
 
-    res.cookie("token", token, { httpOnly: true, secure: true });
+    // res.cookie("token", token, { httpOnly: true, secure: true });
+res.cookie("sellertoken", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+});
 
     await redis.del(`otp:${phone}`);
 

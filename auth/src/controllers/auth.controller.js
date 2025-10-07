@@ -30,7 +30,12 @@ async function registerController(req, res) {
 
    const token = jwt.sign({ id: insertedUser.id, phone: insertedUser.phone }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.cookie("token", token, { httpOnly: true, secure: true });
+    res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+});
+
 
     res.status(201).json({
       message: "User registered successfully",
@@ -53,7 +58,7 @@ async function loginController(req, res) {
   if (!phone) return res.status(400).json({ message: "Phone is required" });
 
   const db = await connectDb();
-  const [userRow] = await db.query("SELECT * FROM user WHERE phone = ?", [phone]);
+  const [userRow] = await db.query("SELECT username ,email,phone FROM user WHERE phone = ?", [phone]);
   if (userRow.length === 0) return res.status(404).json({ message: "User not found" , redirectToRegister: true });
 
   const user = userRow[0];
@@ -64,7 +69,13 @@ async function loginController(req, res) {
     if (!isPasswordValid) return res.status(401).json({ message: "Invalid password" });
 
     const token = jwt.sign({ id: user.id, phone: user.phone }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.cookie("token", token, { httpOnly: true, secure: true });
+    // res.cookie("token", token, { httpOnly: true, secure: true });
+    res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+});
+
     return res.status(200).json({ message: "Login successful", user });
   }
 
@@ -148,6 +159,8 @@ async function getUsers(req,res) {
 }
 
 async function getAllUsers(req,res) {
+  console.log("hello user");
+  
   try {
     const db = await connectDb();
     const [rows] = await db.query("SELECT * FROM user");

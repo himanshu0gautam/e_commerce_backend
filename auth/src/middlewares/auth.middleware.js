@@ -2,8 +2,10 @@ const jwt = require('jsonwebtoken');
 const connectDb = require('../db/db');
 
 const authMiddleware = async (req, res, next) => {
+  
   try {
     // Read token from cookie or header
+    console.log(req.cookies,"cookie here")
     const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
 
     console.log(token);
@@ -30,10 +32,8 @@ const authMiddleware = async (req, res, next) => {
 
 const sellerAuthMiddleware = async (req, res, next) => {
   try {
-    console.log("Cookies:", req.cookies);
-    console.log("Auth Header:", req.headers.authorization);
 
-    const token = req.cookies?.sellertoken || (req.headers?.authorization?.split(' ')[1]);
+    const token = req.cookies?.sellertoken || req.headers?.authorization?.split(' ')[1];
 
     console.log("Token:", token);
 

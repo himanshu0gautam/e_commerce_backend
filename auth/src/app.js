@@ -1,18 +1,30 @@
-const express = require('express')
-const cookieParser = require('cookie-parser')
-const app = express()
-const cors = require('cors')
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
-/*IMPORT ROUTES*/
-const authRoute= require('./routes/auth.route')
-const sellerRoute = require('../src/routes/seller.route')
+const app = express();
+
+/* ROUTES */
+const authRoute = require("./routes/auth.route");
+const sellerRoute = require("./routes/seller.route");
+const adminRoute = require('../src/routes/admin.route')
 
 
-/*USE MIDDLEWARE */
-app.use(express.json())
+/* Parsers */
+app.use(cookieParser());
+app.use(express.json({ strict: true }));
+// app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin:["http://localhost:5173","https://unhortative-mayola-unsavagely.ngrok-free.dev/"],
+  credentials:true
+}))
 
-/*USE ROUTES */
-app.use('/api/auth',authRoute)
-app.use('/api/auth/seller',sellerRoute)
+/* Routes */
+app.use("/api/auth", authRoute);
+app.use("/api/auth/seller", sellerRoute);
+app.use('/api/admin',adminRoute)
 
-module.exports = app
+/* Optional: catch-all for preflight requests */
+
+
+module.exports = app;

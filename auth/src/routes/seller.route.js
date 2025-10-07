@@ -27,4 +27,6 @@ router.post('/reset-password',sellerController.sellerResetPassword)
 
 router.get('/seller-data',authenticatemiddleware.sellerAuthMiddleware,sellerController.getsellerData)
 
+router.get('/all-seller',sellerController.getallsellers)
+
 module.exports = router

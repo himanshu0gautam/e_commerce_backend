@@ -87,7 +87,13 @@ async function verifyOtp(req, res) {
       { expiresIn: "1h" }
     );
 
-    res.cookie("sellertoken", token, { httpOnly: true, secure: true });
+    // res.cookie("sellertoken", token, { httpOnly: true, secure: true });
+    res.cookie("token", token, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+});
+
 
     await redis.del(`otp:${phone}`);
 
