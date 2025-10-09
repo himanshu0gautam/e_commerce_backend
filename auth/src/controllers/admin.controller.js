@@ -1,6 +1,4 @@
 const connectDb = require("../db/db"); // your DB connection
-const jwt = require("jsonwebtoken");
-const bcrypt = require('bcryptjs');
 
 
 async function adminRegisterController(req, res) {
@@ -15,12 +13,11 @@ async function adminRegisterController(req, res) {
             return res.status(400).json({ message: "Admin already registered" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
 
         await db.query("INSERT INTO admin (name, email, password) VALUES (?, ?, ?)", [
             name,
             email,
-            hashedPassword,
+            password,
         ]);
 
         res.status(201).json({ message: "Admin registered successfully" });
@@ -38,23 +35,11 @@ async function adminLoginController(req, res) {
 
     try {
 
-        const [admin] = await db.query("SELECT * FROM admin WHERE email = ?", [email]);
+        const [admin] = await db.query("SELECT * FROM admin WHERE email = ? AND password = ?", [email,password]);
         if (admin.length === 0) {
             return res.status(404).json({ message: "Admin not found" });
         }
 
-        const valid = await bcrypt.compare(password, admin[0].password);
-        if (!valid) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
-
-        const token = jwt.sign(
-            { id: admin[0].id, email: admin[0].email },
-            process.env.JWT_SECRET,
-            { expiresIn: "1d" }
-        );
-
-        res.cookie("admintoken", token, { httpOnly: true, secure: true });
         res.status(200).json({ message: "Admin login successful", admin: admin[0] });
 
     } catch (error) {

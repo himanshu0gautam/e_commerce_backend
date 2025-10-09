@@ -90,16 +90,12 @@ async function sellerRegistration(req, res) {
       phone: insertedSeller.phone
     }, process.env.JWT_SECRET)
 
-<<<<<<< HEAD
     // res.cookie('selertoken',token,{ httpOnly: true, secure: true })
 res.cookie("sellertoken", token, {
   httpOnly: true,
-  secure: true,
-  sameSite: "none",
+  secure: false,
+  sameSite: "lax",
 });
-=======
-    res.cookie('selertoken', token, { httpOnly: true, secure: true })
->>>>>>> 5378e8e1ec91f2cc1f1916061a44055033cc3dec
 
     res.status(201).json({
       message: "Seller registered, pending admin approval",
@@ -122,18 +118,10 @@ async function sellerLogin(req, res) {
   try {
     const db = await connectDb()
 
-<<<<<<< HEAD
       const [sellerRows] = await db.query(
         "SELECT phone, email, fullname FROM seller WHERE phone = ?",
         [phone]
       );
-=======
-    const [sellerRows] = await db.query(
-      "SELECT * FROM seller WHERE phone = ?",
-      [phone]
-    );
-
->>>>>>> 5378e8e1ec91f2cc1f1916061a44055033cc3dec
     if (sellerRows.length === 0) {
       return res.status(404).json({ message: "Seller not found" });
     }
@@ -158,11 +146,7 @@ async function sellerLogin(req, res) {
       phone: seller.phone
     }, process.env.JWT_SECRET)
 
-<<<<<<< HEAD
     res.cookie('sellertoken',token,{ httpOnly: true, secure: false ,sameSite: 'lax', })
-=======
-    res.cookie('sellertoken', token, { httpOnly: true, secure: true })
->>>>>>> 5378e8e1ec91f2cc1f1916061a44055033cc3dec
 
     res.status(201).json({
       message: "Seller login successfully",
@@ -225,11 +209,7 @@ async function getsellerData(req, res) {
   try {
     const db = await connectDb()
 
-<<<<<<< HEAD
     const [seller] = await db.query('CALL GetSellerData(?)', [req.seller.id])
-=======
-    const [seller] = await db.query('SELECT id FROM seller WHERE id = ?', [req.seller.id])
->>>>>>> 5378e8e1ec91f2cc1f1916061a44055033cc3dec
     if (seller.length === 0) return res.status(404).json({ message: "seller not found" });
     res.status(200).json({ seller: seller[0] });
   } catch (error) {
