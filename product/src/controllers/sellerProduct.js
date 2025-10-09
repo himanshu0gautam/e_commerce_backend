@@ -5,15 +5,17 @@ import connectDb from "../db/db.js";
 import { uploadImage } from "../services/services.js";
 
 
-async function sellerCategory(req, res) {
+async function sellerCategory(req, res) {  
 
   try {
 
     const db = await connectDb();
 
     const { category_name, description } = req.body;
-
+    
+    console.log(req.seller);
     const { id: seller_id, fullname: seller_name } = req.seller;
+
 
     if (!category_name) {
       return res.status(401).json({ message: "Category name is required" });
@@ -46,6 +48,10 @@ async function sellerCategory(req, res) {
     res.status(500).json({ message: "Seller category creation failed" });
   }
 
+}
+
+async function sellerSubCategory(req, res) {
+  res.send("done hai")
 }
 
 async function sellerProduct(req, res) {
@@ -123,4 +129,4 @@ async function sellerProduct(req, res) {
 // }
 
 
-export { sellerProduct, sellerCategory }
+export { sellerProduct, sellerCategory, sellerSubCategory }
