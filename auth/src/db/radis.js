@@ -10,9 +10,9 @@ radis.on("connect",() => {
     console.log("Connected to Redis");
 })
 
-// radis.on('error', (err) => {
-//   console.error('Redis error:', err);
-// });
+radis.on('error', (err) => {
+  console.error('Redis error:', err);
+});
 
 
 

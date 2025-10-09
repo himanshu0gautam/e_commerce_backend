@@ -37,6 +37,14 @@ route.post('/reset-password',authControlers.resetPassword)
 /* /api/auth/me */
 route.get('/me',authenticatemiddleware.authMiddleware,authControlers.getUsers)
 
+/* /api/auth/address */
+route.post('/address',authenticatemiddleware.authMiddleware,authControlers.addUserAddress)
+
+/* /api/auth/getallAddress */
+route.get('get-user-all-address',authenticatemiddleware.authMiddleware,authControlers.addUserAddress)
+
+route.delete('/address/:address_id',authenticatemiddleware.authMiddleware,authControlers.deleteUserAddress)
+
 /* /api/auth/allusers */
 route.get("/allusers",authControlers.getAllUsers)
 

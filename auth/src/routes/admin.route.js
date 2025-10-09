@@ -13,14 +13,4 @@ route.post('/approveSeller', adminController.approveSeller)
 
 route.post('/rejectSeller', adminController.rejectSeller)
 
-
 module.exports = route
-
-
-const express = require('express')
-
-const router = express.Router()
-
-
-
-module.exports = router
