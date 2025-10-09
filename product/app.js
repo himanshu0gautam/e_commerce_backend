@@ -2,6 +2,7 @@ import express from 'express';
 import sellerProductRoute from "./src/routes/seller.product.js"
 import cookieParser from 'cookie-parser'
 
+import cookieParser from 'cookie-parser';
 const app = express();
 
 app.use(express.json());
