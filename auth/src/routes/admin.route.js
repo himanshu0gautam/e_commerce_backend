@@ -13,5 +13,4 @@ route.post('/approveSeller', adminController.approveSeller)
 
 route.post('/rejectSeller', adminController.rejectSeller)
 
-
 module.exports = route

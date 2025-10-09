@@ -5,18 +5,16 @@ const authMiddleware = async (req, res, next) => {
   
   try {
     // Read token from cookie or header
-    console.log(req.cookies,"cookie here")
     const token = req.cookies?.token || req.headers?.authorization?.split(' ')[1];
-
-    console.log(token);
-    
-
     if (!token) return res.status(401).json({ message: 'Unauthorized: No token' });
 
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const db = await connectDb();
+
+    console.log(decoded);
+    
 
     // Fetch user from DB
     const [rows] = await db.query('SELECT id, username, email, phone FROM user WHERE id = ?', [decoded.id]);

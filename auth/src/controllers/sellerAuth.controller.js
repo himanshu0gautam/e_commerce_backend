@@ -119,18 +119,14 @@ async function sellerLogin(req, res) {
     const db = await connectDb()
 
       const [sellerRows] = await db.query(
-        "SELECT phone, email, fullname FROM seller WHERE phone = ?",
+        "SELECT id, phone, email, fullname,password FROM seller WHERE phone = ?",
         [phone]
       );
     if (sellerRows.length === 0) {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    if (seller[0].status !== "approved") {
-      return res.status(403).json({ message: "Seller not approved by admin yet" });
-    }
-
-    const seller = sellerRows[0];
+    const seller = sellerRows[0];  
 
     if (password) {
       const isMatch = await bcrypt.compare(password, seller.password);
@@ -150,7 +146,12 @@ async function sellerLogin(req, res) {
 
     res.status(201).json({
       message: "Seller login successfully",
-      seller: seller
+      seller: {
+        seller:seller.id,
+        phone:seller.phone,
+        email:seller.email,
+        fullname:seller.fullname
+      }
     });
 
   } catch (error) {
