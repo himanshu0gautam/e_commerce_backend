@@ -122,10 +122,6 @@ async function sellerLogin(req, res) {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    if (seller[0].status !== "approved") {
-      return res.status(403).json({ message: "Seller not approved by admin yet" });
-    }
-
     const seller = sellerRows[0];
 
     if (password) {

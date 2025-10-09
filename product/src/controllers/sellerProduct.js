@@ -1,82 +1,126 @@
 import { pool } from '../db/db.js'
-import { imagekit } from "../services/services.js"
 
-async function sellerProduct(req, res) {
+import connectDb from "../db/db.js";
 
-    try {
+import { uploadImage } from "../services/services.js";
 
-        const {
-            seller_id,
-            product_name,
-            category,
-            subcategory_id,
-            brand,
-            location_city,
-            location_state,
-            location_country,
-            gst_verified,
-            price_value,
-            price_unit,
-            product_date } = req.body;
 
-        // not use     sku, rating_avg, rating_count, price_currency, request_callback, add_to_wishlist,
+async function sellerCategory(req, res) {
 
-        // handle single or multiple files
-        let file;
-        if (req.file) {
-            file = req.file;
-        } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-            file = req.files[0];
-        }
+  try {
 
-        if (!file) {
-            return res.status(400).json({ message: 'no file uploaded' })
-        }
+    const db = await connectDb();
 
-        // convert to base64 safely
-        const file64 = file.buffer.toString("base64");
-        if (!file64) {
-            return res.status(400).json({ message: 'File buffer is empty' });
-        }
-        const dataURI = `data:${file.mimetype};base64,${file64}`;
+    const { category_name, description } = req.body;
 
-        // upload to ImageKit
-        const result = await imagekit.upload({
-            file: dataURI,
-            fileName: file.originalname,
-            folder: '/producsts',
-            useUniqueFileName: true
-        });
+    const { id: seller_id, fullname: seller_name } = req.seller;
 
-        const [insertResult] = await pool.query(
-            `INSERT INTO product 
-            (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, result.url]
-        );
-
-        const [newProductRows] = await pool.query(
-            `SELECT * FROM product WHERE product_id = ?`,
-            [insertResult.insertId]
-        );
-
-        res.json({
-            message: "product created successfully",
-            sellerProduct:  newProductRows[0],
-            url: result.url,
-            // fileId: result.product_url,
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: 'seller-Product failed' })
+    if (!category_name) {
+      return res.status(401).json({ message: "Category name is required" });
     }
 
+    const [result] = await db.query(
+      `INSERT INTO category 
+    (seller_id, seller_name, category_name, description) 
+    VALUES (?, ?, ?, ?)`,
+      [
+        seller_id,
+        seller_name,
+        category_name,
+        description
+      ]
+    );
+
+    const [newCategoryRows] = await db.query(
+      `SELECT * FROM category WHERE category_id = ?`,
+      [result.insertId]
+    );
+
+    res.status(200).json({
+      message: "category add successfull",
+      sellerCategory: newCategoryRows[0]
+    })
+
+  } catch (error) {
+    console.error("Error creating seller Category:", error);
+    res.status(500).json({ message: "Seller category creation failed" });
+  }
+
+}
+
+async function sellerProduct(req, res) {
+  try {
+    const db = await connectDb();
+    const {
+      seller_id,
+      product_name,
+      category,
+      subcategory_id,
+      brand,
+      location_city,
+      location_state,
+      location_country,
+      gst_verified,
+      price_value,
+      price_unit,
+      product_date
+    } = req.body;
+
+    const files = req.files || [];
+
+    if (files.length === 0) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Upload all images
+    const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
+    const product_url = uploadedFiles.map(f => f.url); // array of URLs
+
+    // Insert product
+    const [insertResult] = await db.query(
+      `INSERT INTO product 
+       (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        seller_id,
+        product_name,
+        category,
+        subcategory_id,
+        brand,
+        location_city,
+        location_state,
+        location_country,
+        gst_verified,
+        price_value,
+        price_unit,
+        product_date,
+        JSON.stringify(product_url), // store as JSON array
+      ]
+    );
+
+    // Fetch the inserted product
+    const [newProductRows] = await db.query(
+      `SELECT * FROM product WHERE product_id = ?`,
+      [insertResult.insertId]
+    );
+
+    res.status(201).json({
+      message: "Product created successfully",
+      sellerProduct: newProductRows[0],
+      product_url,
+    });
+
+  } catch (error) {
+    console.error("Error creating seller product:", error);
+    res.status(500).json({ message: "Seller product creation failed" });
+  }
 }
 
 
-async function getsellerProduct(req, res) {
-    
-}
+
+// async function getsellerProduct(req, res) {
+
+// }
 
 
-export { sellerProduct }
+export { sellerProduct, sellerCategory }

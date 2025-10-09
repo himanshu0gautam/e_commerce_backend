@@ -1,6 +1,6 @@
 import express from "express"
 import multer from "multer"
-import { sellerProduct } from "../controllers/sellerProduct.js"
+import { sellerProduct, sellerCategory } from "../controllers/sellerProduct.js"
 import { verifySellerProduct } from "../middleware/sellerProduct.middleware.js"
 
 const router = express.Router();
@@ -8,8 +8,10 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage })
 
-router.post("/list-product", upload.single('image'), verifySellerProduct, sellerProduct)
+// router.post("/list-product", upload.single('image'), verifySellerProduct, sellerProduct)
 // for multiple image
-// router.post("/list-product", upload.arrry('image', 5), sellerProduct)
+
+router.post("/seller-category", verifySellerProduct, sellerCategory )
+router.post("/list-product", upload.array('image', 5), sellerProduct)
 
 export default router;
