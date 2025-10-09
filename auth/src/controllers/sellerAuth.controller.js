@@ -38,7 +38,7 @@ async function sellerRegistration(req, res) {
   try {
 
     const [exists] = await db.query(
-      "SELECT id FROM seller WHERE email = ? OR phone = ?",
+      "SELECT id FROM seller WHERE email = ? AND phone = ?",
       [email, phone]
     );
 
@@ -112,7 +112,7 @@ async function sellerLogin(req, res) {
   const { phone, password } = req.body
 
   if (!phone) {
-    res.status(400).json({ message: "PHone number is required" })
+    res.status(400).json({ message: "Phone number is required" })
   }
 
   try {
