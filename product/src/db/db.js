@@ -3,7 +3,6 @@ import mysql from "mysql2/promise"
 let pool;
 
 async function connectDb() {
-
     try {
 
         pool = mysql.createPool({
