@@ -9,8 +9,8 @@ route.post('/login', adminController.adminLoginController)
 
 route.post('/getAllSeller', adminController.getAllseller)
 
-route.post('/approveSeller', adminController.approveSeller)
+route.patch('/approveSeller/:sellerId', adminController.approveSeller)
 
-route.post('/rejectSeller', adminController.rejectSeller)
+route.post('/rejectSeller/:sellerId', adminController.rejectSeller)
 
 module.exports = route

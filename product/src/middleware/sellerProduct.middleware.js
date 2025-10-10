@@ -14,7 +14,7 @@ async function verifySellerProduct(req, res, next) {
         
         const db = await connectDb();
 
-        const [rows] = await db.query('SELECT id, email FROM `mojija-auth`.seller WHERE id = ?', [decoded.id]);
+        const [rows] = await db.query('SELECT id,fullname, email FROM `mojija-auth`.seller WHERE id = ?', [decoded.id]);
         if (rows.length === 0) return res.status(404).json({ message: 'Seller not found' });
 
         req.seller = rows[0];

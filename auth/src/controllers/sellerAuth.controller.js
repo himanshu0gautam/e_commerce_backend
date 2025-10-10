@@ -119,7 +119,7 @@ async function sellerLogin(req, res) {
     const db = await connectDb()
 
       const [sellerRows] = await db.query(
-        "SELECT id, phone, email, fullname,password FROM seller WHERE phone = ?",
+        "SELECT id, phone, approval_status, email, fullname,password FROM seller WHERE phone = ?",
         [phone]
       );
     if (sellerRows.length === 0) {
@@ -127,6 +127,16 @@ async function sellerLogin(req, res) {
     }
 
     const seller = sellerRows[0];  
+
+
+
+    if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     if (password) {
       const isMatch = await bcrypt.compare(password, seller.password);
@@ -150,7 +160,8 @@ async function sellerLogin(req, res) {
         seller:seller.id,
         phone:seller.phone,
         email:seller.email,
-        fullname:seller.fullname
+        fullname:seller.fullname,
+        seller_status:seller.approval_status
       }
     });
 

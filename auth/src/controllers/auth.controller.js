@@ -88,12 +88,14 @@ async function loginController(req, res) {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-    // res.cookie("token", token, { httpOnly: true, secure: true });
+
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production", // HTTPS me true
+  sameSite: "lax", // or "none"
+  maxAge: 24 * 60 * 60 * 1000 // 1 din
+});
+
 
     return res.status(200).json({ message: "Login successful", 
       user:{
