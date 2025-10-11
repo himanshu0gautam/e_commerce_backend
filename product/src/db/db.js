@@ -6,7 +6,7 @@ async function connectDb() {
     try {
 
         pool = mysql.createPool({
-            host: process.env.MYSQL_HOST,
+            host: process.env.MYSQL_HOST || "localhost",
             user: process.env.MYSQL_USER,
             database: process.env.MYSQL_DATABASE,
             password: process.env.MYSQL_PASSWORD,

@@ -35,7 +35,7 @@ async function uploadImage(file) {
 
         const uploadfile = await imagekit.upload({
             file: compressedBuffer,
-            fileName: fileName,
+            fileName: "fileName",
             folder: "/products",
         });
 
@@ -61,6 +61,7 @@ async function uploadImage(file) {
             type: uploadfile.fileType,
             size: uploadfile.size,
         };
+
     } catch (error) {
         console.error("Image upload failed:", error.message);
         return {

@@ -5,7 +5,7 @@ import connectDb from "../db/db.js";
 import { uploadImage } from "../services/services.js";
 
 
-async function sellerCategory(req, res) {
+async function sellerCategory(req, res, next) {
 
   try {
 
@@ -25,7 +25,7 @@ async function sellerCategory(req, res) {
       return res.status(401).json({ message: `Invalid category Choose one of: ${allowedCategory.join(', ')}` });
     }
 
-    const [existing] = await db.query('SELECT COUNT(*) AS count FROM category WHERE seller_id = ?', 
+    const [existing] = await db.query('SELECT COUNT(*) AS count FROM category WHERE seller_id = ?',
       [seller_id]);
 
     if (existing[0].count >= 3) {
@@ -124,7 +124,7 @@ async function nestedSubCategory(req, res) {
     }
 
     const [sub_category] = await db.query
-    (`SELECT id, sub_cat_name FROM mojija_product.sub_category WHERE seller_id = ? ORDER BY id DESC LIMIT 1`, [seller_id])    //WHERE ka matlab condition lagana. Yaha sirf wahi rows chahiye jahan seller_id match ho.
+      (`SELECT id, sub_cat_name FROM mojija_product.sub_category WHERE seller_id = ? ORDER BY id DESC LIMIT 1`, [seller_id])    //WHERE ka matlab condition lagana. Yaha sirf wahi rows chahiye jahan seller_id match ho.
 
     if (sub_category.length === 0) {
       return res.status(404).json({ message: "sub_category is not found this seller" })
@@ -134,26 +134,26 @@ async function nestedSubCategory(req, res) {
     const subCategory = sub_category[0].sub_cat_name;
 
     const [result] = await db.query
-    ('INSERT INTO nested_sub_category (seller_id, sub_category_id, nested_sub_cat_name, description) VALUE (?, ?, ?, ?)',
-      [
-        seller_id,
-        sub_category_id,
-        nested_sub_cat_name,
-        description
-      ]);
+      ('INSERT INTO nested_sub_category (seller_id, sub_category_id, nested_sub_cat_name, description) VALUE (?, ?, ?, ?)',
+        [
+          seller_id,
+          sub_category_id,
+          nested_sub_cat_name,
+          description
+        ]);
 
-      const [nested_subCategory] = await db.query(`SELECT * FROM mojija_product.nested_sub_category WHERE id =?`, 
-        [result.insertId]
-      )
+    const [nested_subCategory] = await db.query(`SELECT * FROM mojija_product.nested_sub_category WHERE id =?`,
+      [result.insertId]
+    )
 
-      res.status(200).json({
-        message: "nested_sub_category create successfull",
-        nested_sub_cat_name: nested_subCategory[0],
-        subCategory
-      })
+    res.status(200).json({
+      message: "nested_sub_category create successfull",
+      nested_sub_cat_name: nested_subCategory[0],
+      subCategory
+    })
 
   } catch (error) {
-     console.error("Error creating seller nested_Sub_Category:", error);
+    console.error("Error creating seller nested_Sub_Category:", error);
     res.status(500).json({ message: "Seller nested_Sub_Category creation failed" });
   }
 }
@@ -161,10 +161,11 @@ async function nestedSubCategory(req, res) {
 async function sellerProduct(req, res) {
   try {
     const db = await connectDb();
+
+    const { id: seller_id } = req.seller;
+
     const {
-      seller_id,
       product_name,
-      category,
       subcategory_id,
       brand,
       location_city,
@@ -184,29 +185,36 @@ async function sellerProduct(req, res) {
 
     // Upload all images
     const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
-    const product_url = uploadedFiles.map(f => f.url); // array of URLs
+    const product_url = uploadedFiles.map(f => f.optimized_url);
+
+    const [category_id] = await db.query
+      ('SELECT id FROM mojija_product.category WHERE seller_id = ? ORDER BY id DESC LIMIT 1', [seller_id])
+
+    if (category_id.length === 0) {
+      return res.status(404).json({ message: "Category not found for this seller" })
+    }
+
+    const category = category_id[0].id;
 
     // Insert product
-    const [insertResult] = await db.query(
-      `INSERT INTO product 
-       (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        seller_id,
-        product_name,
-        category,
-        subcategory_id,
-        brand,
-        location_city,
-        location_state,
-        location_country,
-        gst_verified,
-        price_value,
-        price_unit,
-        product_date,
-        JSON.stringify(product_url), // store as JSON array
-      ]
-    );
+    const [insertResult] = await db.query
+      ("INSERT INTO product (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          seller_id,
+          product_name,
+          category,
+          subcategory_id,
+          brand,
+          location_city,
+          location_state,
+          location_country,
+          gst_verified,
+          price_value,
+          price_unit,
+          product_date,
+          JSON.stringify(product_url), // store as JSON array
+        ]
+      );
 
     // Fetch the inserted product
     const [newProductRows] = await db.query(
@@ -226,14 +234,80 @@ async function sellerProduct(req, res) {
   }
 }
 
-// async function getsellerProduct(req, res) {
+async function getAllCategory(req, res) {
+  try {
+    const db = await connectDb();
 
-// }
+    const [categoryrows] = await db.query(
+      'SELECT category_name FROM mojija_product.category')
+
+    if (categoryrows.length === 0) {
+      return res.status(404).json({ message: "Category not found" })
+    }
+
+    // 🪄 Extract only category_name values
+    const categories = categoryrows.map(row => row.category_name);
+
+    res.status(200).json({ categories })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function getSubCategory(req, res) {
+  try {
+    const db = await connectDb();
+
+    const [rows] = await db.query(
+      'SELECT sub_cat_name FROM mojija_product.sub_category'
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Sub_Category not found" })
+    }
+
+    const sub_category = rows.map(row => row.sub_cat_name)
+
+    res.status(200).json({ sub_category })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function getNestedCategory(req, res) {
+  try {
+
+    const db = await connectDb();
+
+    const [rows] = await db.query(
+      "SELECT nested_sub_cat_name FROM mojija_product.nested_sub_category"
+    )
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "nested_sub_category not found" })
+    }
+
+    const nested_category = rows.map(row => row.nested_sub_cat_name);
+
+    res.status(201).json({ nested_category })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 
 export {
   sellerProduct,
   sellerCategory,
   sellerSubCategory,
-  nestedSubCategory
+  nestedSubCategory,
+  getAllCategory,
+  getSubCategory,
+  getNestedCategory
 }
