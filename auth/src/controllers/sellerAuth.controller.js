@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const { sendSMS, sendSMS2 } = require("../services/opt.service");
 const redis = require("../db/radis");
 
+
 async function sellerRegistration(req, res) {
   console.log("hello seller");
   const db = await connectDb();
@@ -177,9 +178,25 @@ async function sellerForgotPassword(req, res) {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: "Phone is required" });
 
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
+
     const db = await connectDb();
     const [userRow] = await db.query("SELECT * FROM seller WHERE phone = ?", [phone]);
     if (userRow.length === 0) return res.status(404).json({ message: "seller not found" });
+
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const ttl = 300; // 5 mins
@@ -199,6 +216,14 @@ async function sellerResetPassword(req, res) {
     const { phone, newPassword } = req.body;
     if (!phone || !newPassword)
       return res.status(400).json({ message: "Phone, token and new password are required" });
+
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     const storedToken = await redis.get(`forgot_pass_token:${phone}`);
     if (!storedToken) return res.status(400).json({ message: "Token expired or invalid" });
