@@ -5,7 +5,7 @@ const { sendSMS, sendSMS2 } = require("../services/opt.service");
 const redis = require("../db/radis");
 
 async function sellerRegistration(req, res) {
-  console.log("hello seller");
+  // console.log("hello seller");
   const db = await connectDb();
   const {
     phone,

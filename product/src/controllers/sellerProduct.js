@@ -11,12 +11,14 @@ async function sellerCategory(req, res, next) {
 
     const db = await connectDb();
 
+    console.log(req.seller);  
+
     const { id: seller_id, fullname: seller_name } = req.seller;
 
     const { category_name, description } = req.body;
 
     if (!category_name) {
-      return res.status(401).json({ message: "Category name is required" });
+      return res.status(401).json({ message: "Category name is requireddd" });
     }
 
     const allowedCategory = ['fashion', 'electronic', 'grosery', 'other'];
@@ -25,12 +27,12 @@ async function sellerCategory(req, res, next) {
       return res.status(401).json({ message: `Invalid category Choose one of: ${allowedCategory.join(', ')}` });
     }
 
-    const [existing] = await db.query('SELECT COUNT(*) AS count FROM category WHERE seller_id = ?',
-      [seller_id]);
+    // const [existing] = await db.query('SELECT COUNT(*) AS count FROM category WHERE seller_id = ?',
+    //   [seller_id]);
 
-    if (existing[0].count >= 3) {
-      return res.status(400).json({ message: "You can only add up to 3 categories" });
-    }
+    // if (existing[0].count >= 3) {
+    //   return res.status(400).json({ message: "You can only add up to 3 categories" });
+    // }
 
     const [result] = await db.query(
       `INSERT INTO category 

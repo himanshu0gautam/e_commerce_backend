@@ -13,7 +13,7 @@ const upload = multer({ storage })
 // for multiple image
 
 //Post method = Prefix url => api/seller 
-router.post("/seller-category", verifySellerProduct, sellerCategory);
+router.post("/seller-category",verifySellerProduct, sellerCategory);
 router.post("/seller-subCategory", verifySellerProduct, sellerSubCategory)
 router.post("/seller-nestedSubCategory", verifySellerProduct, nestedSubCategory);
 router.post("/list-product", verifySellerProduct, upload.array('image', 5), sellerProduct);
