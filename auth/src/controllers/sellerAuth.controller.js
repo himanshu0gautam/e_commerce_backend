@@ -4,9 +4,12 @@ const bcrypt = require('bcryptjs');
 const { sendSMS, sendSMS2 } = require("../services/opt.service");
 const redis = require("../db/radis");
 
+
 async function sellerRegistration(req, res) {
-  // console.log("hello seller");
+  console.log("✅ Seller registration endpoint hit");
+
   const db = await connectDb();
+
   const {
     phone,
     email,
@@ -21,6 +24,11 @@ async function sellerRegistration(req, res) {
     business_owner_phone,
     business_owner_email,
     company_name,
+    branch_name,
+    branch_address,
+    branch_city,
+    branch_state,
+    branch_pincode,
     warehouse_pincode,
     warehouse_state,
     warehouse_full_address,
@@ -36,22 +44,24 @@ async function sellerRegistration(req, res) {
   } = req.body;
 
   try {
-
+    // ✅ Check for existing seller
     const [exists] = await db.query(
-      "SELECT id FROM seller WHERE email = ? AND phone = ?",
+      "SELECT id FROM seller WHERE email = ? OR phone = ?",
       [email, phone]
     );
 
     if (exists.length > 0) {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "Email or phone already registered",
       });
     }
 
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ Call stored procedure (must match parameter order exactly)
     const [result] = await db.query(
-      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         phone,
         email,
@@ -66,6 +76,11 @@ async function sellerRegistration(req, res) {
         business_owner_phone,
         business_owner_email,
         company_name,
+        branch_name,
+        branch_address,
+        branch_city,
+        branch_state,
+        branch_pincode,
         warehouse_pincode,
         warehouse_state,
         warehouse_full_address,
@@ -81,32 +96,44 @@ async function sellerRegistration(req, res) {
       ]
     );
 
+    // ✅ Extract inserted seller from result
     const insertedSeller = result[0] ? result[0][0] : null;
 
-    const token = jwt.sign({
-      id: insertedSeller.id,
-      email: insertedSeller.email,
-      fullname: insertedSeller.fullname,
-      phone: insertedSeller.phone
-    }, process.env.JWT_SECRET)
+    if (!insertedSeller) {
+      return res.status(500).json({ message: "Failed to register seller" });
+    }
 
-    // res.cookie('selertoken',token,{ httpOnly: true, secure: true })
-res.cookie("sellertoken", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax",
-});
+    // ✅ Generate JWT token
+    const token = jwt.sign(
+      {
+        id: insertedSeller.id,
+        email: insertedSeller.email,
+        fullname: insertedSeller.fullname,
+        phone: insertedSeller.phone,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
+    // ✅ Set cookie
+    res.cookie("sellertoken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    // ✅ Send response
     res.status(201).json({
-      message: "Seller registered, pending admin approval",
-      sellerId: result.insertId,
-      seller: insertedSeller
+      message: "Seller registered successfully. Pending admin approval.",
+      sellerId: insertedSeller.id,
+      seller: insertedSeller,
     });
   } catch (error) {
-    console.error("Error registering seller:", error);
+    console.error("❌ Error registering seller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
 
 async function sellerLogin(req, res) {
   const { phone, password } = req.body
@@ -119,7 +146,7 @@ async function sellerLogin(req, res) {
     const db = await connectDb()
 
       const [sellerRows] = await db.query(
-        "SELECT id, phone, email, fullname,password FROM seller WHERE phone = ?",
+        "SELECT id, phone, approval_status, email, fullname,password FROM seller WHERE phone = ?",
         [phone]
       );
     if (sellerRows.length === 0) {
@@ -127,6 +154,16 @@ async function sellerLogin(req, res) {
     }
 
     const seller = sellerRows[0];  
+
+
+
+    if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     if (password) {
       const isMatch = await bcrypt.compare(password, seller.password);
@@ -150,7 +187,8 @@ async function sellerLogin(req, res) {
         seller:seller.id,
         phone:seller.phone,
         email:seller.email,
-        fullname:seller.fullname
+        fullname:seller.fullname,
+        seller_status:seller.approval_status
       }
     });
 
@@ -166,9 +204,25 @@ async function sellerForgotPassword(req, res) {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: "Phone is required" });
 
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
+
     const db = await connectDb();
     const [userRow] = await db.query("SELECT * FROM seller WHERE phone = ?", [phone]);
     if (userRow.length === 0) return res.status(404).json({ message: "seller not found" });
+
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const ttl = 300; // 5 mins
@@ -188,6 +242,14 @@ async function sellerResetPassword(req, res) {
     const { phone, newPassword } = req.body;
     if (!phone || !newPassword)
       return res.status(400).json({ message: "Phone, token and new password are required" });
+
+     if(seller.approval_status ==="pending"){
+      return res.status(409).json({message:"till now u are not approved to login"})
+    }
+
+    if(seller.approval_status ==="rejected"){
+      return res.status(409).json({message:"you are rejected by admin"})
+    }
 
     const storedToken = await redis.get(`forgot_pass_token:${phone}`);
     if (!storedToken) return res.status(400).json({ message: "Token expired or invalid" });

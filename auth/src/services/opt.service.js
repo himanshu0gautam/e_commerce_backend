@@ -1,6 +1,8 @@
 const axios = require('axios')
 
 async function sendSMS(Phone, message){
+  console.log(message);
+  
    console.log(Phone,message)
     const url = 'https://bulksms.smsroot.com/app/smsapi/index.php';
 

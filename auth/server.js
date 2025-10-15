@@ -3,7 +3,7 @@ const app = require('./src/app')
 const connectDb = require('./src/db/db')
 
 
-port=process.env.PORT
+port=process.env.PORT || 3000;
 connectDb()
 
 const IP = require("ip").address();

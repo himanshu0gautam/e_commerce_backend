@@ -8,11 +8,25 @@ const sellerOptController = require('../controllers/sellerOpt.controller')
 
 const router = express.Router()
 
+
+/*REGISTSER SELLER SECTION */
+
+router.post('/seller-register-send-otp',sellerOptController.sellerRegisterSendOTP)
+
+router.post('/seller-register-verify-opt',sellerOptController.sellerRegisterVerifyOTP)
+
+router.post('/seller-register-send-email-otp',sellerOptController.sellerRegisterSendEmailOTP)
+
+router.post('/seller-register-verify-email-otp',sellerOptController.sellerRegisterVerifyEmailOTP)
+
 router.post('/register',sellerController.sellerRegistration)
 
 router.post('/login',sellerController.sellerLogin)
 
-/* /api/auth/send-otp */
+
+/*LOGIN SELLER SECTION */
+
+/* /api/auth/seller/send-otp */
 router.post('/send-otp',sellerOptController.sellerSendOtp)
 
 router.post('/verfy-otp',sellerOptController.sellerVerifyOtp)

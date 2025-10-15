@@ -1,21 +1,27 @@
-import { pool } from '../db/db.js'
+import { pool } from "../db/db.js";
 
 import connectDb from "../db/db.js";
 
 import { uploadImage } from "../services/services.js";
 
+<<<<<<< HEAD
+async function sellerCategory(req, res) {
+=======
 
 async function sellerCategory(req, res, next) {
+>>>>>>> product
 
   try {
-
     const db = await connectDb();
 
     console.log(req.seller);  
 
     const { id: seller_id, fullname: seller_name } = req.seller;
 
+<<<<<<< HEAD
+=======
     const { category_name, description } = req.body;
+>>>>>>> product
 
     if (!category_name) {
       return res.status(401).json({ message: "Category name is requireddd" });
@@ -35,32 +41,27 @@ async function sellerCategory(req, res, next) {
     // }
 
     const [result] = await db.query(
-      `INSERT INTO category 
-    (seller_id, seller_name, category_name, description) 
-    VALUES (?, ?, ?, ?)`,
-      [
-        seller_id,
-        seller_name,
-        category_name,
-        description
-      ]
+      `INSERT INTO category(seller_id, seller_name, category_name,description) VALUES (?, ?, ?, ?)`,
+        [seller_id, seller_name, category_name, description]
     );
 
     const [newCategoryRows] = await db.query(
+<<<<<<< HEAD
+      `SELECT * FROM category WHERE id = ?`,
+=======
       'SELECT * FROM category WHERE id = ?',
+>>>>>>> product
       [result.insertId]
     );
 
     res.status(200).json({
       message: "category add successfull",
-      sellerCategory: newCategoryRows[0]
-    })
-
+      sellerCategory: newCategoryRows[0],
+    });
   } catch (error) {
     console.error("Error creating seller Category:", error);
     res.status(500).json({ message: "Seller category creation failed" });
   }
-
 }
 
 async function sellerSubCategory(req, res) {
@@ -176,7 +177,7 @@ async function sellerProduct(req, res) {
       gst_verified,
       price_value,
       price_unit,
-      product_date
+      product_date,
     } = req.body;
 
     const files = req.files || [];
@@ -186,6 +187,12 @@ async function sellerProduct(req, res) {
     }
 
     // Upload all images
+<<<<<<< HEAD
+    const uploadedFiles = await Promise.all(
+      files.map((file) => uploadImage(file))
+    );
+    const product_url = uploadedFiles.map((f) => f.url); // array of URLs
+=======
     const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
     const product_url = uploadedFiles.map(f => f.optimized_url);
 
@@ -197,6 +204,7 @@ async function sellerProduct(req, res) {
     }
 
     const category = category_id[0].id;
+>>>>>>> product
 
     // Insert product
     const [insertResult] = await db.query
@@ -229,13 +237,19 @@ async function sellerProduct(req, res) {
       sellerProduct: newProductRows[0],
       product_url,
     });
-
   } catch (error) {
     console.error("Error creating seller product:", error);
     res.status(500).json({ message: "Seller product creation failed" });
   }
 }
 
+<<<<<<< HEAD
+// async function getsellerProduct(req, res) {
+
+// }
+
+export { sellerProduct, sellerCategory };
+=======
 async function getAllCategory(req, res) {
   try {
     const db = await connectDb();
@@ -313,3 +327,4 @@ export {
   getSubCategory,
   getNestedCategory
 }
+>>>>>>> product

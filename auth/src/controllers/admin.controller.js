@@ -13,7 +13,6 @@ async function adminRegisterController(req, res) {
             return res.status(400).json({ message: "Admin already registered" });
         }
 
-
         await db.query("INSERT INTO admin (name, email, password) VALUES (?, ?, ?)", [
             name,
             email,
@@ -65,10 +64,15 @@ async function getAllseller(req, res) {
 async function approveSeller(req, res) {
     const db = await connectDb();
     const { sellerId } = req.params;
-
     try {
-        await db.query("UPDATE seller SET status = 'approved' WHERE id = ?", [sellerId]);
-        res.status(200).json({ message: "Seller approved successfully" });
+        const [sellerRows] = await db.query("SELECT id FROM seller WHERE id = ?", [sellerId]);
+        if (sellerRows.length === 0) {
+            return res.status(404).json({ message: "Seller not found" });
+        }
+        await db.query("UPDATE seller SET approval_status = 'approved' WHERE id = ?", [sellerId]);
+
+        const [updatedSeller] = await db.query("SELECT * FROM seller WHERE id = ?", [sellerId]);
+        res.status(200).json({ message: "Seller approved successfully",seller: updatedSeller[0] });
     } catch (error) {
         console.error("Error approving seller:", error);
         res.status(500).json({ message: "Internal server error" });
@@ -78,10 +82,14 @@ async function approveSeller(req, res) {
 async function rejectSeller(req, res) {
     const db = await connectDb();
     const { sellerId } = req.params;
-
     try {
+         const [sellerRows] = await db.query("SELECT id FROM seller WHERE id = ?", [sellerId]);
+        if (sellerRows.length === 0) {
+            return res.status(404).json({ message: "Seller not found" });
+        }
         await db.query("UPDATE seller SET status = 'rejected' WHERE id = ?", [sellerId]);
-        res.status(200).json({ message: "Seller rejected successfully" });
+        const [updatedSeller] = await db.query("SELECT * FROM seller WHERE id = ?", [sellerId]);
+        res.status(200).json({ message: "Seller rejected successfully",seller: updatedSeller[0] });
     } catch (error) {
         console.error("Error rejecting seller:", error);
         res.status(500).json({ message: "Internal server error" });
