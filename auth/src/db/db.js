@@ -1,6 +1,7 @@
 const mysql = require('mysql2/promise');
 
 async function connectDb() {
+    
     try {
         const pool = mysql.createPool({
             host: process.env.MYSQL_HOST,
