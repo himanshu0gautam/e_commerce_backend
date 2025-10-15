@@ -6,8 +6,10 @@ const redis = require("../db/radis");
 
 
 async function sellerRegistration(req, res) {
-  console.log("hello seller");
+  console.log("✅ Seller registration endpoint hit");
+
   const db = await connectDb();
+
   const {
     phone,
     email,
@@ -22,6 +24,11 @@ async function sellerRegistration(req, res) {
     business_owner_phone,
     business_owner_email,
     company_name,
+    branch_name,
+    branch_address,
+    branch_city,
+    branch_state,
+    branch_pincode,
     warehouse_pincode,
     warehouse_state,
     warehouse_full_address,
@@ -37,22 +44,24 @@ async function sellerRegistration(req, res) {
   } = req.body;
 
   try {
-
+    // ✅ Check for existing seller
     const [exists] = await db.query(
-      "SELECT id FROM seller WHERE email = ? AND phone = ?",
+      "SELECT id FROM seller WHERE email = ? OR phone = ?",
       [email, phone]
     );
 
     if (exists.length > 0) {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "Email or phone already registered",
       });
     }
 
+    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // ✅ Call stored procedure (must match parameter order exactly)
     const [result] = await db.query(
-      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         phone,
         email,
@@ -67,6 +76,11 @@ async function sellerRegistration(req, res) {
         business_owner_phone,
         business_owner_email,
         company_name,
+        branch_name,
+        branch_address,
+        branch_city,
+        branch_state,
+        branch_pincode,
         warehouse_pincode,
         warehouse_state,
         warehouse_full_address,
@@ -82,32 +96,44 @@ async function sellerRegistration(req, res) {
       ]
     );
 
+    // ✅ Extract inserted seller from result
     const insertedSeller = result[0] ? result[0][0] : null;
 
-    const token = jwt.sign({
-      id: insertedSeller.id,
-      email: insertedSeller.email,
-      fullname: insertedSeller.fullname,
-      phone: insertedSeller.phone
-    }, process.env.JWT_SECRET)
+    if (!insertedSeller) {
+      return res.status(500).json({ message: "Failed to register seller" });
+    }
 
-    // res.cookie('selertoken',token,{ httpOnly: true, secure: true })
-res.cookie("sellertoken", token, {
-  httpOnly: true,
-  secure: false,
-  sameSite: "lax",
-});
+    // ✅ Generate JWT token
+    const token = jwt.sign(
+      {
+        id: insertedSeller.id,
+        email: insertedSeller.email,
+        fullname: insertedSeller.fullname,
+        phone: insertedSeller.phone,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
+    // ✅ Set cookie
+    res.cookie("sellertoken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    // ✅ Send response
     res.status(201).json({
-      message: "Seller registered, pending admin approval",
-      sellerId: result.insertId,
-      seller: insertedSeller
+      message: "Seller registered successfully. Pending admin approval.",
+      sellerId: insertedSeller.id,
+      seller: insertedSeller,
     });
   } catch (error) {
-    console.error("Error registering seller:", error);
+    console.error("❌ Error registering seller:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
+
 
 async function sellerLogin(req, res) {
   const { phone, password } = req.body

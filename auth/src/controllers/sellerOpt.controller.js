@@ -53,17 +53,17 @@ async function sellerRegisterSendOTP(req,res) {
 }
 
 async function sellerRegisterVerifyOTP(req,res) {
-  const db = connectDb()
+  const db =await connectDb()
   const {phone , otp} = req.body
 
   if(!phone || !otp){
     return res.status(400).json({message:"Phone and OTP is required"})
   }
 
-  const [isEmailExist] = (await db).query(`SELECT * FROM seller WHERE email = ?`,[email])
+  const [isPhoneExist] = await db.query(`SELECT * FROM seller WHERE phone = ?`,[phone])
 
-  if(isEmailExist >0){
-    return res.status(401).json({message:"This Email is already register"})
+  if(isPhoneExist >0){
+    return res.status(401).json({message:"This phone is already register"})
   }
 
   const formattedPhone = phone.startsWith("+91") ? phone : "+91"+phone;
@@ -78,7 +78,7 @@ async function sellerRegisterVerifyOTP(req,res) {
   }
 
   await redis.del(`otp:${formattedPhone}`);
-  res.status(201).json({message:"Phone Number verified succesfully"})
+  res.status(201).json({message:"Phone Number verified succesfully",verifyPhone:true})
 
 }
 
@@ -122,7 +122,7 @@ async function sellerRegisterVerifyEmailOTP(req,res) {
   const {email,otp} = req.body
 
   if(!email || !otp){
-    return res.status(400).json({message:"email and otp is requitred"})
+    return res.status(400).json({message:"email and otp is required"})
   }
 
   try {
@@ -137,7 +137,7 @@ async function sellerRegisterVerifyEmailOTP(req,res) {
   }
 
   await radis.del(`email_otp:${email}`)
-  res.status(201).json({message:"OTP verify Succesfully for Register Seller"})
+  res.status(201).json({message:"OTP verify Succesfully for Register Seller",verifyEmail:true})
 
   } catch (error) {
     console.log("can not verify otp",error);
