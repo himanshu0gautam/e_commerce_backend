@@ -24,6 +24,9 @@ async function sellerRegistration(req, res) {
     business_owner_phone,
     business_owner_email,
     company_name,
+    owner_name, 
+    owner_email,
+    owner_phone,// ✅ Added owner_name
     branch_name,
     branch_address,
     branch_city,
@@ -59,9 +62,9 @@ async function sellerRegistration(req, res) {
     // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ✅ Call stored procedure (must match parameter order exactly)
+    // ✅ Call stored procedure (match parameter order exactly)
     const [result] = await db.query(
-      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "CALL RegisterSeller(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         phone,
         email,
@@ -76,6 +79,9 @@ async function sellerRegistration(req, res) {
         business_owner_phone,
         business_owner_email,
         company_name,
+        owner_name, 
+        owner_email,
+        owner_phone,// ✅ Pass owner_name to procedure
         branch_name,
         branch_address,
         branch_city,
