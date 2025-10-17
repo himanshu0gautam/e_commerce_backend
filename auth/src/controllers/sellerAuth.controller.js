@@ -20,9 +20,6 @@ async function sellerRegistration(req, res) {
     primary_contact_person_name,
     primary_contact_person_phone,
     primary_contact_person_email,
-    business_owner_name,
-    business_owner_phone,
-    business_owner_email,
     company_name,
     owner_name, 
     owner_email,
@@ -37,6 +34,7 @@ async function sellerRegistration(req, res) {
     warehouse_full_address,
     warehouse_order_procising_capacity,
     bank_account_holder_name,
+    pan_number,
     bank_account_no,
     bank_IFCS,
     bank_name,
@@ -75,9 +73,6 @@ async function sellerRegistration(req, res) {
         primary_contact_person_name,
         primary_contact_person_phone,
         primary_contact_person_email,
-        business_owner_name,
-        business_owner_phone,
-        business_owner_email,
         company_name,
         owner_name, 
         owner_email,
@@ -92,6 +87,7 @@ async function sellerRegistration(req, res) {
         warehouse_full_address,
         warehouse_order_procising_capacity,
         bank_account_holder_name,
+        pan_number,
         bank_account_no,
         bank_IFCS,
         bank_name,
@@ -133,6 +129,7 @@ async function sellerRegistration(req, res) {
       message: "Seller registered successfully. Pending admin approval.",
       sellerId: insertedSeller.id,
       seller: insertedSeller,
+      resgister:true
     });
   } catch (error) {
     console.error("❌ Error registering seller:", error);
