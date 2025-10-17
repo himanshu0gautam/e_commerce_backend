@@ -4,22 +4,15 @@ import connectDb from "../db/db.js";
 
 import { uploadImage } from "../services/services.js";
 
-<<<<<<< HEAD
-async function sellerCategory(req, res) {
-=======
 
 async function sellerCategory(req, res, next) {
->>>>>>> product
 
   try {
     const db = await connectDb();
 
     const { id: seller_id, fullname: seller_name } = req.seller;
 
-<<<<<<< HEAD
-=======
     const { category_name, description } = req.body;
->>>>>>> product
 
     if (!category_name) {
       return res.status(401).json({ message: "Category name is required" });
@@ -44,11 +37,7 @@ async function sellerCategory(req, res, next) {
     );
 
     const [newCategoryRows] = await db.query(
-<<<<<<< HEAD
-      `SELECT * FROM category WHERE id = ?`,
-=======
       'SELECT * FROM category WHERE id = ?',
->>>>>>> product
       [result.insertId]
     );
 
@@ -185,12 +174,6 @@ async function sellerProduct(req, res) {
     }
 
     // Upload all images
-<<<<<<< HEAD
-    const uploadedFiles = await Promise.all(
-      files.map((file) => uploadImage(file))
-    );
-    const product_url = uploadedFiles.map((f) => f.url); // array of URLs
-=======
     const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
     const product_url = uploadedFiles.map(f => f.optimized_url);
 
@@ -202,7 +185,6 @@ async function sellerProduct(req, res) {
     }
 
     const category = category_id[0].id;
->>>>>>> product
 
     // Insert product
     const [insertResult] = await db.query
@@ -241,13 +223,6 @@ async function sellerProduct(req, res) {
   }
 }
 
-<<<<<<< HEAD
-// async function getsellerProduct(req, res) {
-
-// }
-
-export { sellerProduct, sellerCategory };
-=======
 async function getAllCategory(req, res) {
   try {
     const db = await connectDb();
@@ -325,4 +300,3 @@ export {
   getSubCategory,
   getNestedCategory
 }
->>>>>>> product
