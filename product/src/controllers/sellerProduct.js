@@ -4,12 +4,7 @@ import connectDb from "../db/db.js";
 
 import { uploadImage } from "../services/services.js";
 
-<<<<<<< HEAD
-
-async function sellerCategory(req, res, next) {
-=======
 async function sellerCategory(req, res) {
->>>>>>> product
 
   try {
     const db = await connectDb();
