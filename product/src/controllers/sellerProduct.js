@@ -4,24 +4,14 @@ import connectDb from "../db/db.js";
 
 import { uploadImage } from "../services/services.js";
 
-<<<<<<< HEAD
 async function sellerCategory(req, res) {
-=======
-
-async function sellerCategory(req, res, next) {
->>>>>>> product
 
   try {
     const db = await connectDb();
 
-    console.log(req.seller);  
-
     const { id: seller_id, fullname: seller_name } = req.seller;
 
-<<<<<<< HEAD
-=======
     const { category_name, description } = req.body;
->>>>>>> product
 
     if (!category_name) {
       return res.status(401).json({ message: "Category name is requireddd" });
@@ -42,20 +32,16 @@ async function sellerCategory(req, res, next) {
 
     const [result] = await db.query(
       `INSERT INTO category(seller_id, seller_name, category_name,description) VALUES (?, ?, ?, ?)`,
-        [seller_id, seller_name, category_name, description]
+      [seller_id, seller_name, category_name, description]
     );
 
     const [newCategoryRows] = await db.query(
-<<<<<<< HEAD
-      `SELECT * FROM category WHERE id = ?`,
-=======
       'SELECT * FROM category WHERE id = ?',
->>>>>>> product
       [result.insertId]
     );
 
     res.status(200).json({
-      message: "category add successfull",
+      message: "Category Add Successfull",
       sellerCategory: newCategoryRows[0],
     });
   } catch (error) {
@@ -170,13 +156,15 @@ async function sellerProduct(req, res) {
     const {
       product_name,
       subcategory_id,
+      sku,
       brand,
       location_city,
       location_state,
       location_country,
       gst_verified,
-      price_value,
-      price_unit,
+      product_price,
+      product_unit,
+      description,
       product_date,
     } = req.body;
 
@@ -187,12 +175,6 @@ async function sellerProduct(req, res) {
     }
 
     // Upload all images
-<<<<<<< HEAD
-    const uploadedFiles = await Promise.all(
-      files.map((file) => uploadImage(file))
-    );
-    const product_url = uploadedFiles.map((f) => f.url); // array of URLs
-=======
     const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
     const product_url = uploadedFiles.map(f => f.optimized_url);
 
@@ -204,23 +186,24 @@ async function sellerProduct(req, res) {
     }
 
     const category = category_id[0].id;
->>>>>>> product
 
     // Insert product
     const [insertResult] = await db.query
-      ("INSERT INTO product (seller_id, product_name, category, subcategory_id, brand, location_city, location_state, location_country, gst_verified, price_value, price_unit, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      ("INSERT INTO product (seller_id, product_name, category, sku, subcategory_id, brand, location_city, location_state, location_country, gst_verified, product_price, product_unit, description, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           seller_id,
           product_name,
           category,
+          sku,
           subcategory_id,
           brand,
           location_city,
           location_state,
           location_country,
           gst_verified,
-          price_value,
-          price_unit,
+          product_price,
+          product_unit,
+          description,
           product_date,
           JSON.stringify(product_url), // store as JSON array
         ]
@@ -243,13 +226,6 @@ async function sellerProduct(req, res) {
   }
 }
 
-<<<<<<< HEAD
-// async function getsellerProduct(req, res) {
-
-// }
-
-export { sellerProduct, sellerCategory };
-=======
 async function getAllCategory(req, res) {
   try {
     const db = await connectDb();
@@ -317,6 +293,46 @@ async function getNestedCategory(req, res) {
   }
 }
 
+async function getAllProduct(req, res) {
+  const db = await connectDb();
+
+  try {
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const offset = (page - 1) * limit;
+
+    const [rows] = await db.query(
+      "SELECT * FROM mojija_product.product LIMIT ? OFFSET ?",
+      [limit, offset]
+    )
+
+    // 4️⃣ Total records count karo (for total pages)
+    const [totalResult] = await db.query(`SELECT COUNT(*) as total FROM mojija_product.product`);
+    const total = totalResult[0].total;
+
+    // 5️⃣ Total pages calculate karo
+    const totalPages = Math.ceil(total / limit);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Product not found" })
+    }
+
+    // const product = rows.map(row => row.product);
+    res.status(201).json({
+      currentPage: page,
+      totalPages,
+      totalRecords: total,
+      data: rows
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 
 export {
   sellerProduct,
@@ -325,6 +341,6 @@ export {
   nestedSubCategory,
   getAllCategory,
   getSubCategory,
-  getNestedCategory
+  getNestedCategory,
+  getAllProduct
 }
->>>>>>> product
