@@ -2,7 +2,7 @@ import express from "express"
 import multer from "multer"
 import { verifySellerProduct } from "../middleware/sellerProduct.middleware.js"
 import { sellerProduct, sellerCategory, nestedSubCategory, sellerSubCategory,
-         getAllCategory, getSubCategory, getNestedCategory } from "../controllers/sellerProduct.js"
+         getAllCategory, getSubCategory, getNestedCategory, getAllProduct } from "../controllers/sellerProduct.js"
 
 const router = express.Router();
 
@@ -22,6 +22,7 @@ router.post("/list-product", verifySellerProduct, upload.array('image', 5), sell
 router.get("/all-category", getAllCategory);
 router.get("/all-subCategory", getSubCategory);
 router.get("/all-nestedCategory", getNestedCategory);
+router.get("/all-product", getAllProduct)
 
 
 export default router;
