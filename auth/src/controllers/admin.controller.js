@@ -48,13 +48,13 @@ async function adminLoginController(req, res) {
 
 }
 
-async function getAllseller(req, res) {
+async function getSingleSeller(req, res) {
     try {
+        const {sellerId } = req.params
         const db = await connectDb()
-
-        const [seller] = await db.query('SELECT id FROM seller WHERE id = ?', [req.seller.id])
+        const [seller] = await db.query('SELECT * FROM seller WHERE id = ?', [sellerId])
         if (seller.length === 0) return res.status(404).json({ message: "seller not found" });
-        res.status(200).json({ seller: seller[0] });
+        res.status(200).json({seller });
     } catch (error) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
@@ -96,10 +96,40 @@ async function rejectSeller(req, res) {
     }
 }
 
+
+async function getallsellers(req,res) {
+  try {
+    const db =await connectDb()
+
+     const page = parseInt(req.query.page) || 1; // default page = 1
+    const limit = parseInt(req.query.limit) || 10; // default limit = 10
+    const offset = (page - 1) * limit;
+
+    const [allSellerData] = await db.query(`SELECT * FROM seller LIMIT ? OFFSET ?`,
+      [limit, offset])
+
+    if(allSellerData.length === 0){
+      return res.status(404).json({message:"No sellers found"})
+    }
+
+    res.status(201).json({
+      message:"All seller data fetched successfully",
+      page,
+      limit,
+      allSellerData:allSellerData
+    })
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 module.exports = {
     adminRegisterController,
     adminLoginController,
-    getAllseller,
+    getSingleSeller,
     approveSeller,
-    rejectSeller
+    rejectSeller,
+    getallsellers
 }
