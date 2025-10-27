@@ -8,6 +8,7 @@ async function connectDb() {
             user: process.env.MYSQL_USER,
             database: process.env.MYSQL_DATABASE,
             password: process.env.MYSQL_PASSWORD,
+            connectionLimit: 10, 
         });
 
         await pool.query('SELECT 1');
