@@ -134,8 +134,10 @@ route.patch("/approveSeller/:sellerId", adminController.approveSeller);
  *       200:
  *         description: Seller rejected successfully
  */
-route.post("/rejectSeller/:sellerId", adminController.rejectSeller);
+route.patch("/rejectSeller/:sellerId", adminController.rejectSeller);
 
 route.get('/single-seller/:sellerId',adminController.getSingleSeller)
+
+route.get('/statusCount',adminController.getApprovedAndRejectCount)
 
 module.exports = route;
