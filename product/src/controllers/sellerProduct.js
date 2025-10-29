@@ -1,7 +1,6 @@
 import { pool } from "../db/db.js";
 
 import connectDb from "../db/db.js";
-
 import { uploadImage } from "../services/services.js";
 
 async function sellerCategory(req, res) {
@@ -149,34 +148,26 @@ async function nestedSubCategory(req, res) {
 
 async function sellerProduct(req, res) {
   try {
+
     const db = await connectDb();
 
     const { id: seller_id } = req.seller;
 
+    console.log(req.body);
+
     const {
-      product_name,
-      subcategory_id,
-      sku,
-      brand,
-      location_city,
-      location_state,
-      location_country,
-      gst_verified,
-      product_price,
-      product_unit,
-      description,
-      product_date,
+      product_name, subcategory_id, sku, brand, location_city, location_state, location_country, gst_verified, product_price, product_unit, description, product_date
     } = req.body;
 
-    const files = req.files || [];
+    // const files = req.files || [];
 
-    if (files.length === 0) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
+    // if (files.length === 0) {
+    //   return res.status(400).json({ message: "No file uploaded" });
+    // }
 
     // Upload all images
-    const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
-    const product_url = uploadedFiles.map(f => f.optimized_url);
+    // const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
+    // const product_url = uploadedFiles.map(f => f.optimized_url);
 
     const [category_id] = await db.query
       ('SELECT id FROM mojija_product.category WHERE seller_id = ? ORDER BY id DESC LIMIT 1', [seller_id])
@@ -189,7 +180,7 @@ async function sellerProduct(req, res) {
 
     // Insert product
     const [insertResult] = await db.query
-      ("INSERT INTO product (seller_id, product_name, category, sku, subcategory_id, brand, location_city, location_state, location_country, gst_verified, product_price, product_unit, description, product_date, product_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      ("INSERT INTO product (seller_id, product_name, category, sku, subcategory_id, brand, location_city, location_state, location_country, gst_verified, product_price, product_unit, description, product_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           seller_id,
           product_name,
@@ -205,7 +196,7 @@ async function sellerProduct(req, res) {
           product_unit,
           description,
           product_date,
-          JSON.stringify(product_url), // store as JSON array
+          // JSON.stringify(product_url), 
         ]
       );
 
@@ -218,13 +209,72 @@ async function sellerProduct(req, res) {
     res.status(201).json({
       message: "Product created successfully",
       sellerProduct: newProductRows[0],
-      product_url,
     });
   } catch (error) {
     console.error("Error creating seller product:", error);
     res.status(500).json({ message: "Seller product creation failed" });
   }
 }
+
+async function sellerImage(req, res) {
+
+  try {
+
+    const db = await connectDb();
+
+    const { id: seller_id } = req.seller;
+
+    const files = req.files || [];
+
+    if (files.length === 0) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Upload all images
+    const uploadedFiles = await Promise.all(files.map(file => uploadImage(file)));
+    const url = uploadedFiles.map(f => f.optimized_url);
+
+    const [productIdResult] = await db.query(
+      "SELECT product_id FROM mojija_product.product WHERE seller_id = ? ORDER BY product_id DESC LIMIT 1", [seller_id]
+    )
+
+    if (productIdResult.length === 0) {
+      return res.status(404).json({ message: "Product not found for this seller" })
+    }
+
+    // query selected `product_id` column; use that property
+    const product_id = productIdResult[0].product_id;
+    console.log(product_id);
+
+    const [result] = await db.query
+      (`INSERT INTO mojija_product.product_url (product_id, seller_id, url) VALUES(?, ?, ?)`,
+        [
+          product_id,
+          seller_id,
+          JSON.stringify(url),
+        ]
+      );
+
+    const [rows] = await db.query
+      ("SELECT * FROM product_url WHERE image_id = ?",
+        [result.insertId]
+      )
+
+    res.status(201).json({
+      message: "Product_url created successfully",
+      sellerProduct: rows[0]
+    });
+
+  } catch (error) {
+    console.error("Error creating seller image_url:", error);
+    res.status(500).json({ message: "Seller image_url creation failed" });
+  }
+}
+
+
+
+
+
 
 async function getAllCategory(req, res) {
   try {
@@ -300,26 +350,44 @@ async function getAllProduct(req, res) {
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
     const offset = (page - 1) * limit;
 
-    const [rows] = await db.query(
-      "SELECT * FROM mojija_product.product LIMIT ? OFFSET ?",
-      [limit, offset]
-    )
+    // check konsa seller login hai 
+    const sellerId = req.seller?.id
 
-    // 4️⃣ Total records count karo (for total pages)
-    const [totalResult] = await db.query(`SELECT COUNT(*) as total FROM mojija_product.product`);
-    const total = totalResult[0].total;
+    let rowsQuery = 'SELECT * FROM mojija_product.product';
+    let countQuery = 'SELECT COUNT (*) as total FROM mojija_product.product';
+    const params = [];
+    const countParams = [];
 
-    // 5️⃣ Total pages calculate karo
-    const totalPages = Math.ceil(total / limit);
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Product not found" })
+    // agar sellerId hai to query ko filter kar do
+    if (sellerId) {
+      rowsQuery += " WHERE seller_id = ?";
+      countQuery += " WHERE seller_id = ?";
+      params.push(sellerId);
+      countParams.push(sellerId);
     }
 
-    // const product = rows.map(row => row.product);
+
+    // add pagination placeholders
+    rowsQuery += " LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+
+    const [rows] = await db.query(rowsQuery, params)
+
+    // total count (for total pages) — agar seller filter laga tha toh same filter use karo
+    const [totalResult] = await db.query(countQuery, countParams);
+    const total = totalResult[0].total;
+    const totalPages = Math.ceil(total / limit);
+
+    // agar koi product nahi mila
+    if (rows.length === 0) {
+      const msg = sellerId
+        ? "No products found for this seller"
+        : "Product not found";
+      return res.status(404).json({ message: msg });
+    }
+
     res.status(201).json({
       currentPage: page,
       totalPages,
@@ -333,6 +401,51 @@ async function getAllProduct(req, res) {
   }
 }
 
+async function getImageUrl(req, res) {
+
+  try {
+    const db = await connectDb()
+
+    const [results] = await db.query('CALL GetProductDetailsWithImages()');   
+
+    const productList = results[0];   
+
+    if (productList.length === 0) {
+      return res.status(200).json({ message: "No products found.", data: [] });
+    }
+
+    const processedProducts = productList.map(product => {
+      // Check if the aggregated image_urls array is present
+      if (product.image_urls) {
+        try {
+          // product.image_urls is a JSON string containing an array of URL strings.
+          // Example: '[ "url1", "url2" ]'
+          product.image_urls = product.image_urls;
+        } catch (e) {
+          console.error("Error parsing image_urls JSON for product:", product.product_id, e);
+          product.image_urls = [];
+        }
+      } else {
+        product.image_urls = [];
+      }
+
+      return product;
+    });
+
+    // 3. Send the entire list to the frontend
+    res.status(200).json({
+      success: true,
+      count: processedProducts.length,
+      data: processedProducts
+    });
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "getImgUrl Internal server error" });
+  }
+}
+
 
 export {
   sellerProduct,
@@ -342,5 +455,7 @@ export {
   getAllCategory,
   getSubCategory,
   getNestedCategory,
-  getAllProduct
+  getAllProduct,
+  sellerImage,
+  getImageUrl
 }
