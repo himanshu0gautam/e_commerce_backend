@@ -11,18 +11,6 @@ const router = express.Router()
 
 /*REGISTSER SELLER SECTION */
 
-<<<<<<< HEAD
-router.post('/seller-register-send-otp',sellerOptController.sellerRegisterSendOTP)
-
-router.post('/seller-register-verify-opt',sellerOptController.sellerRegisterVerifyOTP)
-
-router.post('/seller-register-send-email-otp',sellerOptController.sellerRegisterSendEmailOTP)
-
-router.post('/seller-register-verify-email-otp',sellerOptController.sellerRegisterVerifyEmailOTP)
-
-router.post('/register',sellerController.sellerRegistration)
-
-=======
 /**
  * @swagger
  * /api/auth/seller-register-send-otp:
@@ -163,30 +151,11 @@ router.post('/register',sellerController.sellerRegistration)
  *       200:
  *         description: Logged in successfully
  */
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 router.post('/login',sellerController.sellerLogin)
 
 
 /*LOGIN SELLER SECTION */
 
-<<<<<<< HEAD
-/* /api/auth/seller/send-otp */
-router.post('/send-otp',sellerOptController.sellerSendOtp)
-
-router.post('/verfy-otp',sellerOptController.sellerVerifyOtp)
-
-router.post('/forget-password',sellerController.sellerForgotPassword)
-
-/* /api/auth/verify-Forgot-Otp */
-router.post('/verify-Forgot-Otp',sellerOptController.sellerVerifyForgotOtp)
-
-/* /api/auth/reset-password */
-router.post('/reset-password',sellerController.sellerResetPassword)
-
-router.get('/seller-data',authenticatemiddleware.sellerAuthMiddleware,sellerController.getsellerData)
-
-router.get('/all-seller',sellerController.getallsellers)
-=======
 
 /**
  * @swagger
@@ -325,6 +294,5 @@ router.post('/reset-password',sellerController.sellerResetPassword)
  */
 router.get('/seller-data',authenticatemiddleware.sellerAuthMiddleware,sellerController.getsellerData)
 
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 
 module.exports = router

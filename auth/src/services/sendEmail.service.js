@@ -30,9 +30,6 @@ async function sendEmail(to,subject,message) {
     }
 }
 
-<<<<<<< HEAD
-module.exports = sendEmail
-=======
 async function sendEmailToApproved(to, sellerName) {
   try {
     const mailOption = {
@@ -119,4 +116,3 @@ async function sendEmailToRejected(to, sellerName) {
 
 
 module.exports = {sendEmail,sendEmailToApproved,sendEmailToRejected}
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558

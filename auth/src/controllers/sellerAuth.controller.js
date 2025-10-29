@@ -284,38 +284,6 @@ async function getsellerData(req, res) {
   }
 }
 
-<<<<<<< HEAD
-async function getallsellers(req,res) {
-  
-  try {
-    const db =await connectDb()
-
-     const page = parseInt(req.query.page) || 1; // default page = 1
-    const limit = parseInt(req.query.limit) || 10; // default limit = 10
-    const offset = (page - 1) * limit;
-
-    const [allSellerData] = await db.query(`SELECT * FROM seller LIMIT ? OFFSET ?`,
-      [limit, offset])
-
-    if(allSellerData.length === 0){
-      return res.status(404).json({message:"No sellers found"})
-    }
-
-    res.status(201).json({
-      message:"All seller data fetched successfully",
-      page,
-      limit,
-      allSellerData:allSellerData
-    })
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
-=======
-
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 
 module.exports = {
   sellerRegistration,
@@ -323,8 +291,4 @@ module.exports = {
   sellerForgotPassword,
   sellerResetPassword,
   getsellerData,
-<<<<<<< HEAD
-  getallsellers
-=======
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 };

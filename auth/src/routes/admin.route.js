@@ -1,21 +1,3 @@
-<<<<<<< HEAD
-const express = require('express')
-const adminController = require('../controllers/admin.controller')
-
-const route = express.Router()
-
-route.post('/register', adminController.adminRegisterController)
-
-route.post('/login', adminController.adminLoginController)
-
-route.post('/getAllSeller', adminController.getAllseller)
-
-route.patch('/approveSeller/:sellerId', adminController.approveSeller)
-
-route.post('/rejectSeller/:sellerId', adminController.rejectSeller)
-
-module.exports = route
-=======
 const express = require("express");
 const adminController = require("../controllers/admin.controller");
 
@@ -159,4 +141,3 @@ route.get('/single-seller/:sellerId',adminController.getSingleSeller)
 route.get('/statusCount',adminController.getApprovedAndRejectCount)
 
 module.exports = route;
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558

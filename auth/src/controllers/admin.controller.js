@@ -1,9 +1,5 @@
 const connectDb = require("../db/db"); // your DB connection
-<<<<<<< HEAD
-
-=======
 const {sendEmailToApproved,sendEmailToRejected} = require('../services/sendEmail.service')
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 
 async function adminRegisterController(req, res) {
     try {
@@ -52,15 +48,6 @@ async function adminLoginController(req, res) {
 
 }
 
-<<<<<<< HEAD
-async function getAllseller(req, res) {
-    try {
-        const db = await connectDb()
-
-        const [seller] = await db.query('SELECT id FROM seller WHERE id = ?', [req.seller.id])
-        if (seller.length === 0) return res.status(404).json({ message: "seller not found" });
-        res.status(200).json({ seller: seller[0] });
-=======
 async function getSingleSeller(req, res) {
     try {
         const {sellerId } = req.params
@@ -68,7 +55,6 @@ async function getSingleSeller(req, res) {
         const [seller] = await db.query('SELECT * FROM seller WHERE id = ?', [sellerId])
         if (seller.length === 0) return res.status(404).json({ message: "seller not found" });
         res.status(200).json({seller });
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
     } catch (error) {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
@@ -79,14 +65,6 @@ async function approveSeller(req, res) {
     const db = await connectDb();
     const { sellerId } = req.params;
     try {
-<<<<<<< HEAD
-        const [sellerRows] = await db.query("SELECT id FROM seller WHERE id = ?", [sellerId]);
-        if (sellerRows.length === 0) {
-            return res.status(404).json({ message: "Seller not found" });
-        }
-        await db.query("UPDATE seller SET approval_status = 'approved' WHERE id = ?", [sellerId]);
-
-=======
         const [sellerRows] = await db.query("SELECT id,owner_email,company_name FROM seller WHERE id = ?", [sellerId]);
         if (sellerRows.length === 0) {
             return res.status(404).json({ message: "Seller not found" });
@@ -100,7 +78,6 @@ async function approveSeller(req, res) {
 
         await sendEmailToApproved(owner_email,company_name)
 
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
         const [updatedSeller] = await db.query("SELECT * FROM seller WHERE id = ?", [sellerId]);
         res.status(200).json({ message: "Seller approved successfully",seller: updatedSeller[0] });
     } catch (error) {
@@ -110,16 +87,6 @@ async function approveSeller(req, res) {
 }
 
 async function rejectSeller(req, res) {
-<<<<<<< HEAD
-    const db = await connectDb();
-    const { sellerId } = req.params;
-    try {
-         const [sellerRows] = await db.query("SELECT id FROM seller WHERE id = ?", [sellerId]);
-        if (sellerRows.length === 0) {
-            return res.status(404).json({ message: "Seller not found" });
-        }
-        await db.query("UPDATE seller SET status = 'rejected' WHERE id = ?", [sellerId]);
-=======
      let rejectedSellerCount = 0;
     const db = await connectDb();
     const { sellerId } = req.params;
@@ -137,7 +104,6 @@ async function rejectSeller(req, res) {
 
         sendEmailToRejected(owner_email,company_name)
 
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
         const [updatedSeller] = await db.query("SELECT * FROM seller WHERE id = ?", [sellerId]);
         res.status(200).json({ message: "Seller rejected successfully",seller: updatedSeller[0] });
     } catch (error) {
@@ -146,14 +112,6 @@ async function rejectSeller(req, res) {
     }
 }
 
-<<<<<<< HEAD
-module.exports = {
-    adminRegisterController,
-    adminLoginController,
-    getAllseller,
-    approveSeller,
-    rejectSeller
-=======
 async function getallsellers(req,res) {
   try {
     const db =await connectDb()
@@ -216,5 +174,4 @@ module.exports = {
     rejectSeller,
     getallsellers,
     getApprovedAndRejectCount
->>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 }
