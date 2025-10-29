@@ -284,6 +284,7 @@ async function getsellerData(req, res) {
   }
 }
 
+<<<<<<< HEAD
 async function getallsellers(req,res) {
   
   try {
@@ -312,6 +313,9 @@ async function getallsellers(req,res) {
     res.status(500).json({ message: "Internal server error" });
   }
 }
+=======
+
+>>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 
 module.exports = {
   sellerRegistration,
@@ -319,5 +323,8 @@ module.exports = {
   sellerForgotPassword,
   sellerResetPassword,
   getsellerData,
+<<<<<<< HEAD
   getallsellers
+=======
+>>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 };

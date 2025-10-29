@@ -4,7 +4,11 @@ const redis = require("../db/radis");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require('uuid');
 const radis = require("../db/radis");
+<<<<<<< HEAD
 const sendEmail= require('../services/sendEmail.service')
+=======
+const {sendEmail}= require('../services/sendEmail.service')
+>>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
 
 async function sellerRegisterSendOTP(req,res) {
   const db =await connectDb()

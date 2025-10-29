@@ -2,7 +2,11 @@
   "name": "auth",
   "version": "1.0.0",
   "description": "",
+<<<<<<< HEAD
   "main": "server.js",
+=======
+  "main": "index.js",
+>>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon server.js"
@@ -25,6 +29,11 @@
     "multer": "^2.0.2",
     "mysql2": "^3.15.1",
     "nodemailer": "^7.0.9",
+<<<<<<< HEAD
+=======
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+>>>>>>> 9626cc7c1824c10d0a7adcfd824fdf86643cb558
     "twilio": "^5.10.1",
     "uuid": "^13.0.0"
   }
